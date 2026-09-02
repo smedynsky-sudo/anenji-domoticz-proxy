@@ -19,7 +19,7 @@ UPSTREAM_HOST = os.getenv("UPSTREAM_HOST", "8.218.202.213")
 UPSTREAM_PORT = int(os.getenv("UPSTREAM_PORT", "18899"))
 LOCAL_ONLY = os.getenv("LOCAL_ONLY", "1") == "1"
 HTTP_PORT = int(os.getenv("HTTP_PORT", "8088"))
-HTTP_ENABLED = os.getenv("HTTP_ENABLED", "1") == "1"
+HTTP_ENABLED = os.getenv("HTTP_ENABLED", "0") == "1"
 DNS_HOST = os.getenv("DNS_HOST", "0.0.0.0")
 DNS_PORT = int(os.getenv("DNS_PORT", "53"))
 DNS_UPSTREAM = os.getenv("DNS_UPSTREAM", "1.1.1.1")
