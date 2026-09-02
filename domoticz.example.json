@@ -1,0 +1,27 @@
+{
+  "url": "http://DOMOTICZ_IP:8080",
+  "hardware_idx": 1,
+  "devices": {
+    "pv_power": 1,
+    "output_active_power": 2,
+    "grid_power": 3,
+    "battery_power": 4,
+    "battery_soc": 5,
+    "load_percent": 6,
+    "grid_voltage": 7,
+    "output_voltage": 8,
+    "battery_voltage": 9,
+    "pv_voltage": 10,
+    "pv_current": 11,
+    "output_current": 12,
+    "battery_signed_current": 13,
+    "grid_frequency": 14,
+    "output_frequency": 15,
+    "inverter_temperature": 16,
+    "dcdc_temperature": 17,
+    "mode": 18,
+    "online": 19
+  }
+}
+
+
