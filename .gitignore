@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+domoticz.json
+*.local
+.env
+web/
+smartess-gateway.sh
+smartess-gateway.service
+smartess-proxy.service
+
+
