@@ -153,9 +153,10 @@ async def publish():
 
 
 def push_domoticz_sync():
-    base = str(domoticz.get("url", "")).rstrip("/")
+    configured_urls = domoticz.get("urls") or [domoticz.get("url", "")]
+    bases = [str(url).rstrip("/") for url in configured_urls if str(url).strip()]
     devices = domoticz.get("devices", {})
-    if not base or not devices:
+    if not bases or not devices:
         return
     updates = []
     for key, idx in devices.items():
@@ -174,25 +175,27 @@ def push_domoticz_sync():
             continue
         value = item.get("label", item.get("value")) if key == "mode" else item.get("value")
         updates.append((key, idx, 0, value))
-    for key, idx, nvalue, svalue in updates:
-        # Alert text may contain live voltage, but Domoticz notifications should
-        # only see an update when the actual alert state changes.
-        fingerprint = nvalue if key in ("mode", "online") else (nvalue, str(svalue))
-        if key in ("mode", "online") and domoticz_last_state.get(key) == fingerprint:
-            continue
-        query = urllib.parse.urlencode({
-            "type": "command", "param": "udevice", "idx": idx,
-            "nvalue": nvalue, "svalue": str(svalue),
-        })
-        try:
-            with urllib.request.urlopen(f"{base}/json.htm?{query}", timeout=3) as response:
-                result = json.load(response)
-                if result.get("status") != "OK":
-                    log.warning("Domoticz rejected idx %s: %s", idx, result)
-                elif key in ("mode", "online"):
-                    domoticz_last_state[key] = fingerprint
-        except Exception as exc:
-            log.warning("Domoticz update idx %s failed: %s", idx, exc)
+    for base in bases:
+        for key, idx, nvalue, svalue in updates:
+            # Alert text may contain live voltage, but Domoticz notifications
+            # should only see an update when the actual alert state changes.
+            fingerprint = nvalue if key in ("mode", "online") else (nvalue, str(svalue))
+            state_key = (base, key)
+            if key in ("mode", "online") and domoticz_last_state.get(state_key) == fingerprint:
+                continue
+            query = urllib.parse.urlencode({
+                "type": "command", "param": "udevice", "idx": idx,
+                "nvalue": nvalue, "svalue": str(svalue),
+            })
+            try:
+                with urllib.request.urlopen(f"{base}/json.htm?{query}", timeout=3) as response:
+                    result = json.load(response)
+                    if result.get("status") != "OK":
+                        log.warning("Domoticz %s rejected idx %s: %s", base, idx, result)
+                    elif key in ("mode", "online"):
+                        domoticz_last_state[state_key] = fingerprint
+            except Exception as exc:
+                log.warning("Domoticz %s update idx %s failed: %s", base, idx, exc)
 
 
 def decode_value(register, raw):
