@@ -164,8 +164,12 @@ def push_domoticz_sync():
             updates.append((key, idx, 1 if state["online"] else 4, "Онлайн" if state["online"] else "Нет соединения"))
             continue
         if key == "mode":
-            mode = state["values"].get("mode", {}).get("label", "Неизвестно")
-            grid_voltage = float(state["values"].get("grid_voltage", {}).get("value", 0) or 0)
+            mode_item = state["values"].get("mode")
+            grid_item = state["values"].get("grid_voltage")
+            if not mode_item or not grid_item:
+                continue
+            mode = mode_item.get("label", "Неизвестно")
+            grid_voltage = float(grid_item.get("value", 0) or 0)
             grid_ok = grid_voltage >= 180
             text = f"{mode} · сеть {grid_voltage:g} V" if grid_ok else f"{mode} · СЕТЬ ОТСУТСТВУЕТ"
             updates.append((key, idx, 1 if grid_ok else 4, text))
@@ -183,6 +187,19 @@ def push_domoticz_sync():
             state_key = (base, key)
             if key in ("mode", "online") and domoticz_last_state.get(state_key) == fingerprint:
                 continue
+            if key in ("mode", "online") and state_key not in domoticz_last_state:
+                current_query = urllib.parse.urlencode({
+                    "type": "command", "param": "getdevices", "rid": idx,
+                })
+                try:
+                    with urllib.request.urlopen(f"{base}/json.htm?{current_query}", timeout=3) as response:
+                        current = json.load(response).get("result", [])
+                    current_level = int(float(current[0].get("Level"))) if current else None
+                    if current_level == nvalue:
+                        domoticz_last_state[state_key] = fingerprint
+                        continue
+                except Exception as exc:
+                    log.warning("Domoticz %s state check idx %s failed: %s", base, idx, exc)
             query = urllib.parse.urlencode({
                 "type": "command", "param": "udevice", "idx": idx,
                 "nvalue": nvalue, "svalue": str(svalue),
