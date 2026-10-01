@@ -1,5 +1,7 @@
 {
-  "url": "http://DOMOTICZ_IP:8080",
+  "urls": [
+    "http://DOMOTICZ_IP:8080"
+  ],
   "hardware_idx": 1,
   "devices": {
     "pv_power": 1,
